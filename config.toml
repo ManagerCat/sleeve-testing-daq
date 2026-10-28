@@ -1,0 +1,109 @@
+# ==============================================================================
+# COOLING SLEEVE TESTING JIG CONFIGURATION
+# ==============================================================================
+# Edit this file to configure serial communication, circuit resistor values,
+# sensor calibration, flow parameters, fluid properties, and data logging.
+
+[hardware]
+# Serial port to Elegoo Mega 2560 R3.
+# Use "AUTO" for automatic port detection, or specify a path such as "/dev/cu.usbmodem1101"
+serial_port = "AUTO"
+baud_rate = 115200
+timeout_s = 2.0
+
+[circuit]
+# Pull-up resistor value in Ohms (R_FIXED).
+# This is the default resistor ohm value in the voltage divider circuit:
+# Mega 5V -> R_FIXED -> Analog Pin -> Thermistor -> GND
+default_r_fixed = 9820.0
+
+# Optional per-channel resistor overrides (in Ohms):
+# If you measured each individual pull-up resistor on your board with a multimeter,
+# specify the exact measured resistance here. Any channel not listed below will
+# automatically use default_r_fixed.
+[circuit.resistor_ohms]
+water_in = 9820.0
+water_out = 9820.0
+T1 = 9820.0
+T2 = 9820.0
+T3 = 9820.0
+T4 = 9820.0
+T5 = 9820.0
+T6 = 9820.0
+T7 = 9820.0
+T8 = 9820.0
+
+[channels.water]
+# Mapping of coolant sensors to Mega 2560 analog channel indices (0 = A0, 1 = A1, etc.)
+water_in = 0
+water_out = 1
+
+[channels.motor]
+# Mapping of mock motor edge sensors to Mega 2560 analog channel indices
+T1 = 2
+T2 = 3
+T3 = 4
+T4 = 5
+T5 = 6
+T6 = 7
+T7 = 8
+T8 = 9
+
+[sensors.coolant]
+# Koolance inline thermistors (10k NTC, Beta 3435)
+r0 = 10000.0           # Nominal resistance at reference temperature (Ohms)
+t0_c = 25.0            # Reference temperature (°C)
+beta = 3435.0          # Beta material constant (K)
+
+[sensors.motor]
+# Ametherm PANE 103395-410 mock motor edge thermistors (10k NTC, Beta 3950)
+r0 = 10000.0           # Nominal resistance at reference temperature (Ohms)
+t0_c = 25.0            # Reference temperature (°C)
+beta = 3950.0          # Beta material constant (K)
+
+[motor_geometry]
+# Mock motor geometry and dynamic thermal conduction offset
+# Corrects for thermistors located 0.095" inward from the outer edge in 6061-T6 aluminum.
+# Conduction resistance: R_cond = ln(r_outer / (r_outer - distance)) / (2 * pi * k * length)
+# Dynamic temperature drop: delta_T = Q_watts * R_cond
+# Surface edge temperature: T_edge = T_measured - delta_T
+enabled = true
+distance_from_edge_in = 0.095      # Distance from outer edge to thermistor center (inches)
+outer_diameter_in = 3.778          # Mock motor outer diameter (inches)
+length_in = 3.6                    # Active sleeve contact length (inches)
+k_aluminum = 167.0                 # Thermal conductivity of 6061-T6 aluminum (W/(m*K))
+
+[flow]
+# Koolance pulse flowmeter (connected to Digital Pin 2)
+# Note: Mega 2560 firmware applies a 5 ms (5000 µs) ISR debounce lockout to prevent double counting / switch bounce.
+lpm_per_hz = 0.308     # Flow calibration multiplier: Liters/min per Hz pulse frequency
+window_s = 1.0         # Pulse counting frequency calculation window (seconds)
+history_samples = 10   # Rolling sample count for flow rate averaging (10 seconds at 1s window)
+
+[fluids]
+# Coolant fluid thermal constants (standard water)
+cp_water = 4180.0      # Specific heat capacity of water (J / (kg * K))
+rho_water = 1.0        # Density of water (kg / L)
+
+[logging]
+# Output CSV directory and filename prefix
+output_dir = "~/Downloads"
+csv_prefix = "sleeve_test"
+
+# Main acquisition loop target frequency (Hz)
+target_hz = 20.0
+
+# Rolling sample smoothing windows (200 samples = 10.0 seconds at 20 Hz)
+smooth_samples = 200
+watts_smooth_samples = 200
+
+# Rate of temperature change (dT/dt) sliding calculation window (seconds)
+rate_window_s = 10.0
+
+# Live Rich terminal dashboard refresh rate (Hz)
+dashboard_refresh_hz = 4.0
+
+[graph]
+# Live Unicode Braille temperature history graph in terminal dashboard
+enabled = true
+history_seconds = 60.0       # Time window displayed on graph (seconds)
